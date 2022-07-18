@@ -1,18 +1,19 @@
 var palavra1 ="OLA"
 var palavra2="1221t2"
-var palavra3="12"
+var palavra3="124"
 
-function validaPlaca(testeEntrada){
+function validaPlaca(stringTeste, nNumeros){
     var valido = false;
-    if(!(testeEntrada.length > 3) && !isNaN(testeEntrada))
+    if(!(stringTeste.length > nNumeros) && !isNaN(stringTeste))
     {
         valido=true
     }
     return valido;
  }
- console.log("Is a Number? " + validaPlaca(palavra1));
- console.log("Is a Number? " + validaPlaca(palavra2));
- console.log("Is a Number? " + validaPlaca(palavra3));
+
+ console.log("Is a Number? " + validaPlaca(palavra1, 3));
+ console.log("Is a Number? " + validaPlaca(palavra2, 3));
+ console.log("Is a Number? " + validaPlaca(palavra3, 3));
 
 
     //
