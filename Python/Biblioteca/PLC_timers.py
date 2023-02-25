@@ -1,27 +1,56 @@
 # Biblioteca PLC_timers @ Luís Dias 2023
 # A seguinte biblioteca implementa as seguintes estruturas:
 # ======================================================================
-# Extended pulse
+# Extended pulse              ->  extendPulse
 #     
-# Retentive on-delay timer
+# Retentive on-delay timer    ->  timerON
 #
-# Switch-off delay
+# Switch-off delay            ->  timerOFF
 #
-# Cyclic timer
+# Cyclic timer                ->  clockPulse
 # ======================================================================
 
-class timerOFF:
-    def __init__(self, valor):
-        self.valor = valor
+# BrainStorm
+# 1º - O utilizador podera adicionar timer segundo um indice
+#  - Criar lista em python
+
+
+
+class extendPulse:                                     
+    def __init__(self):
+        pass
+
+class timerON:                                    
+    def __init__(self):
+        pass
+
+class timerOFF:                                   
+    def __init__(self):
+        pass
     
-    def dobrar_valor(self):
-        self.valor *= 2
+    def input(self, bool):
+        if bool == True:
+            print("Input a 1")
+        else:
+            print("Input a 0")
+        pass
+    
+    def output(self):
+        return 0
+    
+    def reset(self, bool):
+        return 0
+    
+    def preset_time(self, float):
+        return 0
+    
+    
+class clockPulse:                                    
+    def __init__(self):
+        pass
+
         
         
-class timerON:
-    def __init__(self, valor):
-        self.valor = valor
-    
-    def dobrar_valor(self):
-        self.valor *= 2
+        
+
 
