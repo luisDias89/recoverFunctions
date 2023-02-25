@@ -1,9 +1,12 @@
 import Biblioteca as lib
+import time
+
+teste = lib.timerOFF()
 
 # ==========================================================================================================================================
 #     Estrutura de declaração de timerOFF 
 #===========================================================================================================================================         
-timers =[]                                        # Declaro uma lista de timers
+timersOFF =[]                                        # Declaro uma lista de timers
 
 timeroff_0 = 0                                    # Crio um Timer para cada ulitização que pretenda 
 timerDoPlacar = 1                                 # . . . . . .
@@ -19,10 +22,21 @@ timerInicialization = 4                           # não apagar este ponteiro, a
 # Inicialização dos timers
 
 for i in range(timerInicialization):
-    timers.append(lib.timerOFF())
+    timersOFF.append(lib.timerOFF())
 
 
-timers[timeroff_0].input(0)
-timers[timerDoPlacar].input(1)
-timers[meuNovoTimer].input(True)
-timers[timernovo3].input(False)
+timersOFF[timeroff_0].set_input(0)
+timersOFF[timerDoPlacar].set_input(1)
+timersOFF[meuNovoTimer].set_input(True)
+
+
+timersOFF[timernovo3].set_input(False)
+print(timersOFF[timernovo3].output())
+time.sleep(2)
+print(timersOFF[timernovo3].output())
+time.sleep(2)
+timersOFF[timernovo3].reset_pulse(True)
+timersOFF[timernovo3].set_input(True)
+print(timersOFF[timernovo3].output())
+time.sleep(2)
+print(timersOFF[timernovo3].output())
