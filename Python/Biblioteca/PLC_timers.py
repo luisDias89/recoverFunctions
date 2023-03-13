@@ -28,12 +28,12 @@ a função toc() retorna o tempo entre o tic() e o toc()
 
 from time import time as Time
 
+
 #           ================ Extend PULSE =========================
 #               ****************************************
 #
 #              IMPLEMENTA A FUNÇÃO DE PLC DE Extend PULSE
 #           ==================================================
-
 class extendPulse:                                     
     # Memorias do timer
     _inputVal = False                           # Inicia o _inputVal = False    
@@ -142,6 +142,7 @@ class extendPulse:
         """
         self._triger = False                                    # Garante que a saida vai a zero
         self._preset_timeVal = preset_time                      # Atribui o novo tempo de contagem
+
 
 
 #           ================ TIME ON =========================
@@ -376,17 +377,134 @@ class timerOFF():
 
 
 
+'''
+
 
 #           ================ CLOCK PULSE =========================
 #               ****************************************
 #
 #              IMPLEMENTA A FUNÇÃO DE PLC DE CLOCK PULSE
 #           ==================================================
+#   -> O inicio de definido por um pulso de start ou start a 1;
+#   -> Se ouver um reset a saida automaticamente fica a zero, a espera de ser novamente reiniciado, sendo que só é reiniciado quando o reset vier zero;
+#   -> O temporizador sempre inicia com o ciclo de LOW. ( Low- high - LOW _ HIGH ....);
+#   -> Sempre que o periodo inativo seja definido como 0(s) ou inferior a 0(s); 
+#   -> Ao contrario dos restantes temporizadores o valor de ElapsedTime não pára o temporizador, continuara indefinidamente até receber um reset.
 
 class clockPulse:                                    
+        # Memorias do timer
+    _inputVal = False                           # Inicia o _inputVal = False    
+    _resetVal = False                           # Inicia o _resetVal = False
+    _start = 0                                  # variavel auxiliar do TIC/TOC
+    _elapsedTime = 0.0                          # Tempo de _elapsedTime
+    _PresetTimeLow = 0.0                        # Tempo a low em segundos
+    _PresetTimeHight = 0.0                      # Tempo a hight em segundos
+    _preset_timeVal = 1.0                       # _preset_timeVal inicial = 1.0 segundos
+    _triger         = False                     # A contagem só é valida quanto o disparao está a 1
+    
     def __init__(self):
-        pass
+        self._tic()                                         # guarda o tempo atual aquando a inicialização do TIMER
+        self._elapsedTime = self._preset_timeVal            # Garante que a saida começa em 0
+    
+    # Função de TIC
+    def _tic(self):
+        self._start = Time()
 
+    #Função de TOC
+    def _toc(self):
+        delta_t = Time() - self._start
+        return delta_t
+    
+                                    
+    def input_pulse(self):                            
+        """Input pulse
+
+        The input pulse is active when there is no active reset
+        """
+        if self._resetVal == False:                     # se não estiver ativo o reset
+            self._triger=True                           # então abilito o triger que inicia a contagem
+            self._tic()                                 # e marca o inicio da contagem
+        self._inputVal = False                          # coloco sempre o input a falso, pois é um pulso
+    
+    def set_input(self, bool):
+        """Permanently forces the input to True or False
+        
+            Detects rising and falling edges, if it's a falling edge and there's
+            no active reset, then it starts counting
+        """
+        if bool == True and self._inputVal==False:           # Deteta borda de subida então:
+            if self._resetVal == False:                      # Se não houver reset, então posso iniciar contagem
+                self._triger = True                              # habilita a contagem, que é colocada a zero no inicio ou nos resets
+                self._tic()                                      # e marca o tempo inicial do contador
+            self._inputVal= True                             # se o utilizador pedir para colocar o input a 1, faz set do input a 1
+        elif bool == False and self._inputVal==True:         # Deteta borda de descida então:
+            self._inputVal= False                            # Apenas desço o input mas continua o ciclo
+    
+    def get__elapsedTime(self):
+        """Returns the counting time
+
+        Returns:
+            Returns the time elapsed since the start of the pulse, when it reaches the preset_time, stops the time counter
+        """
+        
+        # Nesta rotina o elapse time é o retorna da contagem dos nivel low e dos niveis high
+        self._elapsedTime = self._toc()
+        if self._resetVal == True or self._triger==False:   # Se o reset time estiver a 1, então retorna 0.0, ou seja está em estado de reset. não existe contagem
+            self._elapsedTime = 0.0
+            return self._elapsedTime
+        else:
+            self._elapsedTime = self._toc()
+            if self._elapsedTime >= self._preset_timeVal:
+                return self._preset_timeVal                      # Se o tempo estourou devolte o tempo de preset_time
+            else:
+                return self._elapsedTime                         # Caso contrario devolve o tempo que passou desde a marcação do tic
+    
+    def output(self):
+        """output of the timerOFF
+
+        If the timer is in reset or counting is disabled, the output is 0. 
+        Otherwise, if the input is 1, then the output is 1; else if the counter
+        hasn't reached the end yet, the output is True; otherwise, the output is 0
+        """
+        # Calcula o novo elapseTime
+        self._elapsedTime=self._toc()
+        
+        if self._resetVal == True :    # Se tiver um reset 
+            return False                                                            # a saida é sempre falsa
+        elif self._inputVal == True:
+            return True
+        elif (self._elapsedTime <= self._preset_timeVal) and self._triger == True:   # senão se o tempo de contagem for superior ou igual ao preset_timeVal, n a função de timeON a saida vai a 1
+            return True
+        else:
+            return False                                         # Caso contrario retorna Falso, porque esta na janela de contagem ainda
+    
+    def reset_pulse(self):
+        """Reset pulse
+        On the reset pulse, the output is turned off and counting only resumes when there is a new rising edge on the input
+        """
+        self._triger = False                                    # Garante que quando o reset vier a Falso, não inicia contagem
+                                                                       
+    
+    def set_reset(self, bool):
+        """Assigns a state to the Reset.
+
+        If the reset is set to false, a new counting will only start when there is a new rising edge on the input
+        """
+        if bool == True:                                        # Se o pedido for para reset então
+            self._resetVal = True                                   # O timer fica em estado de reset
+            self._triger = False                                    # Garante que quando o reset vier a Falso, não inicia contagem
+        else:                                                   # Senão
+           self._resetVal= False                                    # Desbloqueia apenas o reset, e o triger de contagem tem que vir de um pulso no IN
+            
+    
+    def set_presetTime(self, preset_time):
+        """Insert preset time (float) in seconds
+           When the counting time is inputted, the output goes to zero
+        """
+        self._triger = False                                    # Garante que a saida vai a zero, só com novo pulso no in é que a saida vai a 1
+        self._preset_timeVal = preset_time                      # Atribui o novo tempo de contagem
+
+'''
         
         
         
